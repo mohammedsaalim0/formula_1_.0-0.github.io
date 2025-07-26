@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula 1 Teams Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: 
+                linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,20,20,0.9)),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23333" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            background-size: cover, 50px 50px;
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Racing stripes animation */
+        .racing-stripes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent 0px,
+                transparent 40px,
+                rgba(255, 69, 0, 0.05) 40px,
+                rgba(255, 69, 0, 0.05) 80px
+            );
+            animation: stripeMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes stripeMove {
+            0% { transform: translateX(-80px); }
+            100% { transform: translateX(0px); }
+        }
+
+        /* Speed lines */
+        .speed-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.1) 50%, transparent 100%),
+                linear-gradient(90deg, transparent 0%, rgba(255,69,0,0.1) 50%, transparent 100%),
+                linear-gradient(90deg, transparent 0%, rgba(30,144,255,0.1) 50%, transparent 100%);
+            background-size: 200px 2px, 300px 1px, 150px 1px;
+            background-position: 0 20%, 0 40%, 0 60%;
+            animation: speedLines 3s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes speedLines {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Checkered flag effect */
+        .checkered-bg {
+            position: fixed;
+            top: 0;
+            right: -20%;
+            width: 30%;
+            height: 100%;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg at 50% 50%,
+                    #000 0deg 90deg,
+                    #fff 90deg 180deg,
+                    #000 180deg 270deg,
+                    #fff 270deg 360deg
+                );
+            background-size: 20px 20px;
+            opacity: 0.03;
+            animation: checkeredMove 15s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes checkeredMove {
+            0% { transform: translateX(0) rotate(0deg); }
+            100% { transform: translateX(-50px) rotate(5deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 4.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff4500, #ffd700, #ff1744, #00bcd4);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 50px rgba(255, 69, 0, 0.5);
+            margin-bottom: 20px;
+            animation: titleRace 4s ease-in-out infinite;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        @keyframes titleRace {
+            0%, 100% { 
+                background-position: 0% 50%; 
+                transform: scale(1);
+            }
+            50% { 
+                background-position: 100% 50%; 
+                transform: scale(1.05);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #ffffff;
+            opacity: 0.9;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            font-weight: 500;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+            padding: 20px 0;
+        }
+
+        .team-card {
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%),
+                rgba(0,0,0,0.3);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 35px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .team-card:hover::before {
+            left: 100%;
+        }
+
+        .team-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff4500, #ffd700, #00bcd4, #ff1744);
+            background-size: 400% 400%;
+            border-radius: 25px;
+            z-index: -1;
+            opacity: 0;
+            animation: borderRace 3s linear infinite;
+            transition: opacity 0.3s ease;
+        }
+
+        .team-card:hover::after {
+            opacity: 1;
+        }
+
+        @keyframes borderRace {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .team-card:hover {
+            transform: translateY(-15px) rotateX(5deg);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.4),
+                0 0 30px rgba(255, 69, 0, 0.3);
+            border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        .team-logo {
+            width: 140px;
+            height: 90px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .team-logo img {
+            max-width: 120px;
+            max-height: 70px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .team-card:hover .team-logo {
+            transform: scale(1.1) rotateY(5deg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .team-card:hover .team-logo img {
+            transform: scale(1.05);
+        }
+
+        .team-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .team-info {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .visit-btn {
+            background: linear-gradient(45deg, #ff4500, #ff6347, #ffd700);
+            background-size: 200% 200%;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+            animation: btnGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes btnGlow {
+            0% { box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3); }
+            100% { box-shadow: 0 5px 25px rgba(255, 215, 0, 0.5); }
+        }
+
+        .visit-btn:hover {
+            background-position: 100% 0;
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.6);
+        }
+
+        /* Team-specific glowing borders */
+        .mercedes:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(0, 210, 190, 0.5); }
+        .redbull:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(30, 65, 255, 0.5); }
+        .ferrari:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(220, 0, 0, 0.5); }
+        .mclaren:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(255, 135, 0, 0.5); }
+        .aston-martin:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(0, 111, 98, 0.5); }
+        .alpine:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(0, 144, 255, 0.5); }
+        .williams:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(55, 190, 221, 0.5); }
+        .alphatauri:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(43, 69, 98, 0.5); }
+        .alfa-romeo:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(144, 15, 15, 0.5); }
+        .haas:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(182, 186, 189, 0.5); }
+
+        @media (max-width: 768px) {
+            .title { font-size: 3rem; }
+            .teams-grid { grid-template-columns: 1fr; gap: 25px; }
+            .team-card { padding: 25px; }
+            .team-logo { width: 120px; height: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="racing-stripes"></div>
+    <div class="speed-lines"></div>
+    <div class="checkered-bg"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Formula 1 Teams</h1>
+            <p class="subtitle">🏁 Click on any team to visit their official website 🏁</p>
+        </div>
+
+        <div class="teams-grid">
+            <div class="team-card mercedes" onclick="visitTeam('https://www.mercedesamgf1.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/mercedes.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#00d2be; font-weight:bold;\'>★</div>'" 
+                         alt="Mercedes Logo">
+                </div>
+                <h3 class="team-name">Mercedes-AMG Petronas</h3>
+                <p class="team-info">8-time Constructors' Champions</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card redbull" onclick="visitTeam('https://www.redbullracing.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/redbull.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#1e41ff; font-weight:bold;\'>🐂</div>'" 
+                         alt="Red Bull Logo">
+                </div>
+                <h3 class="team-name">Red Bull Racing</h3>
+                <p class="team-info">Current World Champions</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card ferrari" onclick="visitTeam('https://www.ferrari.com/en/formula1')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/ferrari.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#dc0000; font-weight:bold;\'>🐎</div>'" 
+                         alt="Ferrari Logo">
+                </div>
+                <h3 class="team-name">Scuderia Ferrari</h3>
+                <p class="team-info">The Prancing Horse</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card mclaren" onclick="visitTeam('https://www.mclaren.com/racing/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/mclaren.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#ff8700; font-weight:bold;\'>🧡</div>'" 
+                         alt="McLaren Logo">
+                </div>
+                <h3 class="team-name">McLaren F1 Team</h3>
+                <p class="team-info">Papaya Power</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card aston-martin" onclick="visitTeam('https://www.astonmartinf1.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/astonmartin.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#006f62; font-weight:bold;\'>💚</div>'" 
+                         alt="Aston Martin Logo">
+                </div>
+                <h3 class="team-name">Aston Martin</h3>
+                <p class="team-info">British Racing Green</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card alpine" onclick="visitTeam('https://www.alpinecars.com/en/formula-1/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/alpine.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#0090ff; font-weight:bold;\'>🔵</div>'" 
+                         alt="Alpine Logo">
+                </div>
+                <h3 class="team-name">Alpine F1 Team</h3>
+                <p class="team-info">French Engineering Excellence</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card williams" onclick="visitTeam('https://www.williamsf1.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/williams.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#37bedd; font-weight:bold;\'>💙</div>'" 
+                         alt="Williams Logo">
+                </div>
+                <h3 class="team-name">Williams Racing</h3>
+                <p class="team-info">Racing Heritage Since 1977</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card alphatauri" onclick="visitTeam('https://scuderiaalphatauri.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/alphatauri.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#2b4562; font-weight:bold;\'>⚡</div>'" 
+                         alt="AlphaTauri Logo">
+                </div>
+                <h3 class="team-name">Scuderia AlphaTauri</h3>
+                <p class="team-info">Fashion Meets Speed</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card alfa-romeo" onclick="visitTeam('https://www.sauber-group.com/motorsport/formula-1/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/alfaromeo.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#900f0f; font-weight:bold;\'>🐍</div>'" 
+                         alt="Alfa Romeo Logo">
+                </div>
+                <h3 class="team-name">Alfa Romeo</h3>
+                <p class="team-info">Italian Racing Passion</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+
+            <div class="team-card haas" onclick="visitTeam('https://www.haasf1team.com/')">
+                <div class="team-logo">
+                    <img src="https://cdn.jsdelivr.net/gh/formula1-data/f1-team-logos@main/haas.png" 
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:2.5rem; color:#b6babb; font-weight:bold;\'>🇺🇸</div>'" 
+                         alt="Haas Logo">
+                </div>
+                <h3 class="team-name">Haas F1 Team</h3>
+                <p class="team-info">American Racing Spirit</p>
+                <button class="visit-btn">Visit Official Site</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function visitTeam(url) {
+            const card = event.currentTarget;
+            card.style.transform = 'scale(0.95) rotateX(10deg)';
+            card.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                window.open(url, '_blank');
+                card.style.transform = '';
+                card.style.opacity = '';
+            }, 200);
+        }
+
+        // Enhanced racing particles
+        function createRacingParticle() {
+            const particle = document.createElement('div');
+            const colors = ['#ff4500', '#ffd700', '#00bcd4', '#ff1744'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            particle.style.position = 'fixed';
+            particle.style.width = Math.random() * 6 + 2 + 'px';
+            particle.style.height = '2px';
+            particle.style.background = color;
+            particle.style.borderRadius = '2px';
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '1';
+            particle.style.left = '100vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+            particle.style.boxShadow = 0 0 10px ${color};
+            particle.style.animation = raceLeft ${1 + Math.random() * 2}s linear forwards;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 3000);
+        }
+
+        // Floating sparks
+        function createSpark() {
+            const spark = document.createElement('div');
+            spark.style.position = 'fixed';
+            spark.style.width = '3px';
+            spark.style.height = '3px';
+            spark.style.background = '#ffd700';
+            spark.style.borderRadius = '50%';
+            spark.style.pointerEvents = 'none';
+            spark.style.zIndex = '1';
+            spark.style.left = Math.random() * 100 + 'vw';
+            spark.style.top = '100vh';
+            spark.style.boxShadow = '0 0 15px #ffd700';
+            spark.style.animation = sparkFly ${2 + Math.random() * 3}s ease-out forwards;
+            
+            document.body.appendChild(spark);
+            
+            setTimeout(() => {
+                spark.remove();
+            }, 5000);
+        }
+
+        // Create racing effects
+        setInterval(createRacingParticle, 300);
+        setInterval(createSpark, 1000);
+
+        // Add keyframes for new animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes raceLeft {
+                0% {
+                    transform: translateX(0) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateX(-120vw) scale(0.5);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes sparkFly {
+                0% {
+                    transform: translateY(0) rotateZ(0deg) scale(1);
+                    opacity: 1;
+                }
+                50% {
+                    transform: translateY(-50vh) rotateZ(180deg) scale(1.2);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(-100vh) rotateZ(360deg) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Enhanced mouse interaction
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            
+            // Create trail effect
+            if (Math.random() > 0.9) {
+                const trail = document.createElement('div');
+                trail.style.position = 'fixed';
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+                trail.style.width = '4px';
+                trail.style.height = '4px';
+                trail.style.background = 'rgba(255, 215, 0, 0.6)';
+                trail.style.borderRadius = '50%';
+                trail.style.pointerEvents = 'none';
+                trail.style.zIndex = '1';
+                trail.style.animation = 'trailFade 1s ease-out forwards';
+                
+                document.body.appendChild(trail);
+                
+                setTimeout(() => trail.remove(), 1000);
+            }
+        });
+
+        // Trail fade animation
+        const trailStyle = document.createElement('style');
+        trailStyle.textContent = `
+            @keyframes trailFade {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(trailStyle);
+    </script><a href="sal.html" style="background-color: orange; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; text-decoration: none; display: inline-block;">
+   <i> about circits thoo..</i>
+</a>
+
+
+
+</body>
+</html>

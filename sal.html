@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Mohammed Saalim – F1 Dev</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+/* ---------- RESET ---------- */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body,html{height:100%;color:#fff;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* ---------- LIVE RACING BG ---------- */
+.bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#000;
+  z-index:-2;
+}
+.stripe{
+  position:absolute;
+  width:200%;height:5px;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,0,0,.8) 20%,
+    rgba(255,255,255,.9) 40%,
+    rgba(255,0,0,.8) 60%,
+    transparent 100%);
+  animation:move 1.2s linear infinite;
+}
+@keyframes move{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.stripe:nth-child(1){top:20%;animation-delay:0s}
+.stripe:nth-child(2){top:40%;animation-delay:.3s}
+.stripe:nth-child(3){top:60%;animation-delay:.6s}
+.stripe:nth-child(4){top:80%;animation-delay:.9s}
+
+/* ---------- CONTAINER ---------- */
+.container{
+  position:relative;
+  max-width:480px;margin:8vh auto;padding:30px 20px;
+  background:rgba(0,0,0,.55);border:1px solid #ff0040;
+  border-radius:20px;backdrop-filter:blur(10px);
+  text-align:center;
+}
+h1{font-size:2.2em;margin-bottom:.3em}
+p{margin:.8em 0;line-height:1.5em}
+
+/* ---------- LOGO / PHOTO ---------- */
+.logo-space{
+  width:160px;height:160px;margin:0 auto 20px;
+  border:3px dashed #ff0040;border-radius:50%;
+  background:rgba(0,0,0,.4) url('data:image/svg+xml;utf8,<svg fill="%23ffffff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>') center/50px no-repeat;
+  cursor:pointer;transition:.3s;
+}
+.logo-space:hover{transform:scale(1.05)}
+.logo-space img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none}
+
+/* ---------- GLOW BUTTONS ---------- */
+.btn{
+  display:inline-block;margin:.5em .3em;padding:14px 28px;
+  font-size:1rem;font-weight:600;
+  border:none;border-radius:50px;
+  background:#ff0040;color:#fff;
+  cursor:pointer;transition:.3s;
+  box-shadow:0 0 10px #ff0040,0 0 20px #ff0040;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%  {box-shadow:0 0 10px #ff0040,0 0 20px #ff0040}
+  50% {box-shadow:0 0 20px #ff0040,0 0 40px #ff0040}
+  100%{box-shadow:0 0 10px #ff0040,0 0 20px #ff0040}
+}
+.btn:hover{transform:translateY(-2px)}
+</style>
+</head>
+<body>
+
+<!-- animated racing stripes -->
+<div class="bg">
+  <div class="stripe"></div>
+  <div class="stripe"></div>
+  <div class="stripe"></div>
+  <div class="stripe"></div>
+</div>
+
+<div class="container">
+  <!-- photo/logo -->
+  <label class="logo-space" id="logoLabel">
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <img id="preview" alt="your photo">
+  </label>
+
+  <!-- text -->
+  <h1>Mohammed Saalim</h1>
+  <p>
+    My name is Mohammed Saalim – a Formula&nbsp;1 enthusiast.<br>
+    Follow my <a href="https://www.instagram.com/formula_1_.0_0?igsh=MTlzMnlvbjh2cjNyYw==" target="_blank" style="color:#ff0040;">Instagram</a> for more such content.<br>
+    DM or contact me via email / phone to build your own website&nbsp;😳🔥
+  </p>
+
+  <!-- glowing buttons -->
+  <a class="btn" href="tel:+917975685773">Phone: 7975685773</a>
+  <a class="btn" href="mailto:mohammedsaalimismil@gmail.com">Gmail</a>
+</div>
+
+<script>
+/* photo upload */
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const url=URL.createObjectURL(file);
+  const preview=document.getElementById('preview');
+  preview.src=url;
+  preview.style.display='block';
+});
+</script>
+</body>
+</html>
